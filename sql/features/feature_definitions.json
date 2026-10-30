@@ -1,0 +1,1504 @@
+[
+  {
+    "column_name": "context_id",
+    "meaning": "Source grouping key; not a verified customer identity",
+    "source_fields": [
+      "context_id"
+    ],
+    "formula": "context_id",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 0,
+    "observability": "directly observable",
+    "limitations": "Raw nonblank values retained; no trimming or identity merging.",
+    "relevance_to_laya": "Source grouping key; not a verified customer identity can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "feature_as_of",
+    "meaning": "Exclusive historical snapshot",
+    "source_fields": [
+      "event_datetime"
+    ],
+    "formula": ":'snapshot'::timestamp",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 0,
+    "observability": "directly observable",
+    "limitations": "Timezone-naive source convention; business timezone unresolved.",
+    "relevance_to_laya": "Exclusive historical snapshot can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "history_row_count",
+    "meaning": "Number of recorded historical event rows",
+    "source_fields": [
+      "event_datetime",
+      "context_id"
+    ],
+    "formula": "count(*)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 0,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Number of recorded historical event rows can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "first_observed_event_at",
+    "meaning": "First available historical observation",
+    "source_fields": [
+      "event_datetime"
+    ],
+    "formula": "min(event_datetime)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 0,
+    "observability": "directly observable",
+    "limitations": "Available files begin March 2026; not lifetime history.",
+    "relevance_to_laya": "First available historical observation can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "last_observed_event_at",
+    "meaning": "Last recorded historical observation",
+    "source_fields": [
+      "event_datetime"
+    ],
+    "formula": "max(event_datetime)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 11,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Last recorded historical observation can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "hours_since_last_observed_event",
+    "meaning": "Recency of any recorded event",
+    "source_fields": [
+      "event_datetime"
+    ],
+    "formula": "extract(epoch FROM (:'snapshot'::timestamp - (max(event_datetime))))/3600.0",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 11,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Recency of any recorded event can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "missing_channel_rows",
+    "meaning": "Rows with blank or NULL channel",
+    "source_fields": [
+      "channel"
+    ],
+    "formula": "count(*) FILTER(WHERE nullif(btrim(channel),'') IS NULL)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 1,
+    "observability": "directly observable",
+    "limitations": "Missing channel is not a fourth channel.",
+    "relevance_to_laya": "Rows with blank or NULL channel can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "unknown_nonblank_channel_rows",
+    "meaning": "Unapproved nonblank channel rows",
+    "source_fields": [
+      "channel"
+    ],
+    "formula": "count(*) FILTER(WHERE nullif(btrim(channel),'') IS NOT NULL AND channel NOT IN ('SMS','WA','GRCS'))",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 1,
+    "observability": "directly observable",
+    "limitations": "Pipeline validates this equals zero; does not manufacture channel outputs.",
+    "relevance_to_laya": "Unapproved nonblank channel rows can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "missing_application_rows",
+    "meaning": "Rows without a recorded application identifier",
+    "source_fields": [
+      "application_id"
+    ],
+    "formula": "count(*) FILTER(WHERE NOT (nullif(btrim(application_id),'') IS NOT NULL))",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 7,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Rows without a recorded application identifier can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "missing_session_rows",
+    "meaning": "Rows without a recorded session identifier",
+    "source_fields": [
+      "session_id"
+    ],
+    "formula": "count(*) FILTER(WHERE NOT (nullif(btrim(session_id),'') IS NOT NULL))",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 12,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Rows without a recorded session identifier can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "missing_product_rows",
+    "meaning": "Rows without a recorded product identifier",
+    "source_fields": [
+      "product_id"
+    ],
+    "formula": "count(*) FILTER(WHERE NOT (nullif(btrim(product_id),'') IS NOT NULL))",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 16,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Rows without a recorded product identifier can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "missing_partner_rows",
+    "meaning": "Rows without a recorded partner identifier",
+    "source_fields": [
+      "partner_id"
+    ],
+    "formula": "count(*) FILTER(WHERE NOT (nullif(btrim(partner_id),'') IS NOT NULL))",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 18,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Rows without a recorded partner identifier can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "sms_send_rows",
+    "meaning": "SMS observed campaign_sent event-row count",
+    "source_fields": [
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE channel='SMS' AND event_name='campaign_sent')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 1,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "SMS observed campaign_sent event-row count can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "sms_open_read_rows",
+    "meaning": "SMS observed campaign_open_read event-row count",
+    "source_fields": [
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE channel='SMS' AND event_name='campaign_open_read')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 2,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "SMS observed campaign_open_read event-row count can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "sms_click_rows",
+    "meaning": "SMS observed campaign_clicked event-row count",
+    "source_fields": [
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE channel='SMS' AND event_name='campaign_clicked')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 2,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "SMS observed campaign_clicked event-row count can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "sms_last_send_at",
+    "meaning": "SMS last observed send timestamp",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "max(event_datetime) FILTER(WHERE channel='SMS' AND event_name='campaign_sent')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 3,
+    "observability": "directly observable",
+    "limitations": "NULL without observed qualifying events; missing telemetry is not lack of interest.",
+    "relevance_to_laya": "SMS last observed send timestamp can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "sms_hours_since_last_send",
+    "meaning": "SMS hours since last observed send",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "extract(epoch FROM (:'snapshot'::timestamp - (max(event_datetime) FILTER(WHERE channel='SMS' AND event_name='campaign_sent'))))/3600.0",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 3,
+    "observability": "directly observable",
+    "limitations": "NULL without observed qualifying events; no future rows allowed.",
+    "relevance_to_laya": "SMS hours since last observed send can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "sms_last_engagement_at",
+    "meaning": "SMS last observed engagement timestamp",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "max(event_datetime) FILTER(WHERE channel='SMS' AND event_name IN ('campaign_open_read','campaign_clicked'))",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 3,
+    "observability": "directly observable",
+    "limitations": "NULL without observed qualifying events; missing telemetry is not lack of interest.",
+    "relevance_to_laya": "SMS last observed engagement timestamp can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "sms_hours_since_last_engagement",
+    "meaning": "SMS hours since last observed engagement",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "extract(epoch FROM (:'snapshot'::timestamp - (max(event_datetime) FILTER(WHERE channel='SMS' AND event_name IN ('campaign_open_read','campaign_clicked')))))/3600.0",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 3,
+    "observability": "directly observable",
+    "limitations": "NULL without observed qualifying events; no future rows allowed.",
+    "relevance_to_laya": "SMS hours since last observed engagement can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "sms_send_rows_1d",
+    "meaning": "SMS observed sends in trailing 1 days",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE event_datetime >= :'snapshot'::timestamp - interval '1 days' AND channel='SMS' AND event_name='campaign_sent')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 4,
+    "observability": "directly observable",
+    "limitations": "Counts include duplicates; left edge may predate available history; see coverage flags.",
+    "relevance_to_laya": "SMS observed sends in trailing 1 days can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "sms_send_rows_7d",
+    "meaning": "SMS observed sends in trailing 7 days",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE event_datetime >= :'snapshot'::timestamp - interval '7 days' AND channel='SMS' AND event_name='campaign_sent')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 4,
+    "observability": "directly observable",
+    "limitations": "Counts include duplicates; left edge may predate available history; see coverage flags.",
+    "relevance_to_laya": "SMS observed sends in trailing 7 days can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "sms_send_rows_30d",
+    "meaning": "SMS observed sends in trailing 30 days",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE event_datetime >= :'snapshot'::timestamp - interval '30 days' AND channel='SMS' AND event_name='campaign_sent')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 4,
+    "observability": "directly observable",
+    "limitations": "Counts include duplicates; left edge may predate available history; see coverage flags.",
+    "relevance_to_laya": "SMS observed sends in trailing 30 days can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "sms_unmatched_open_event_row_ratio",
+    "meaning": "SMS unmatched open/read-row to send-row diagnostic",
+    "source_fields": [
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE channel='SMS' AND event_name='campaign_open_read')::double precision/nullif(count(*) FILTER(WHERE channel='SMS' AND event_name='campaign_sent'),0)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 5,
+    "observability": "directly observable",
+    "limitations": "NOT a matched rate, may exceed one, ignores unique-message attribution and censoring; NULL with zero sends.",
+    "relevance_to_laya": "SMS unmatched open/read-row to send-row diagnostic can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "sms_matched_open_rate",
+    "meaning": "SMS verified unique-message matched-open rate",
+    "source_fields": [
+      "event_datetime",
+      "event_name",
+      "channel",
+      "channel_id"
+    ],
+    "formula": "NULL::double precision",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 5,
+    "observability": "contract-dependent",
+    "limitations": "Unavailable: message identity/linkage, complete response windows and telemetry contracts unverified; affinity parameters unapproved.",
+    "relevance_to_laya": "SMS verified unique-message matched-open rate can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "sms_median_time_to_open_hours",
+    "meaning": "SMS median verified matched delay",
+    "source_fields": [
+      "event_datetime",
+      "event_name",
+      "channel",
+      "channel_id"
+    ],
+    "formula": "NULL::double precision",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 5,
+    "observability": "contract-dependent",
+    "limitations": "Unavailable: message identity/linkage, complete response windows and telemetry contracts unverified; affinity parameters unapproved.",
+    "relevance_to_laya": "SMS median verified matched delay can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "sms_channel_affinity",
+    "meaning": "SMS opening-primary, delay-secondary smoothed affinity",
+    "source_fields": [
+      "event_datetime",
+      "event_name",
+      "channel",
+      "channel_id"
+    ],
+    "formula": "NULL::double precision",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 5,
+    "observability": "contract-dependent",
+    "limitations": "Unavailable: message identity/linkage, complete response windows and telemetry contracts unverified; affinity parameters unapproved.",
+    "relevance_to_laya": "SMS opening-primary, delay-secondary smoothed affinity can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "wa_send_rows",
+    "meaning": "WA observed campaign_sent event-row count",
+    "source_fields": [
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE channel='WA' AND event_name='campaign_sent')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 1,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "WA observed campaign_sent event-row count can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "wa_open_read_rows",
+    "meaning": "WA observed campaign_open_read event-row count",
+    "source_fields": [
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE channel='WA' AND event_name='campaign_open_read')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 2,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "WA observed campaign_open_read event-row count can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "wa_click_rows",
+    "meaning": "WA observed campaign_clicked event-row count",
+    "source_fields": [
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE channel='WA' AND event_name='campaign_clicked')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 2,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "WA observed campaign_clicked event-row count can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "wa_last_send_at",
+    "meaning": "WA last observed send timestamp",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "max(event_datetime) FILTER(WHERE channel='WA' AND event_name='campaign_sent')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 3,
+    "observability": "directly observable",
+    "limitations": "NULL without observed qualifying events; missing telemetry is not lack of interest.",
+    "relevance_to_laya": "WA last observed send timestamp can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "wa_hours_since_last_send",
+    "meaning": "WA hours since last observed send",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "extract(epoch FROM (:'snapshot'::timestamp - (max(event_datetime) FILTER(WHERE channel='WA' AND event_name='campaign_sent'))))/3600.0",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 3,
+    "observability": "directly observable",
+    "limitations": "NULL without observed qualifying events; no future rows allowed.",
+    "relevance_to_laya": "WA hours since last observed send can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "wa_last_engagement_at",
+    "meaning": "WA last observed engagement timestamp",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "max(event_datetime) FILTER(WHERE channel='WA' AND event_name IN ('campaign_open_read','campaign_clicked'))",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 3,
+    "observability": "directly observable",
+    "limitations": "NULL without observed qualifying events; missing telemetry is not lack of interest.",
+    "relevance_to_laya": "WA last observed engagement timestamp can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "wa_hours_since_last_engagement",
+    "meaning": "WA hours since last observed engagement",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "extract(epoch FROM (:'snapshot'::timestamp - (max(event_datetime) FILTER(WHERE channel='WA' AND event_name IN ('campaign_open_read','campaign_clicked')))))/3600.0",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 3,
+    "observability": "directly observable",
+    "limitations": "NULL without observed qualifying events; no future rows allowed.",
+    "relevance_to_laya": "WA hours since last observed engagement can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "wa_send_rows_1d",
+    "meaning": "WA observed sends in trailing 1 days",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE event_datetime >= :'snapshot'::timestamp - interval '1 days' AND channel='WA' AND event_name='campaign_sent')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 4,
+    "observability": "directly observable",
+    "limitations": "Counts include duplicates; left edge may predate available history; see coverage flags.",
+    "relevance_to_laya": "WA observed sends in trailing 1 days can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "wa_send_rows_7d",
+    "meaning": "WA observed sends in trailing 7 days",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE event_datetime >= :'snapshot'::timestamp - interval '7 days' AND channel='WA' AND event_name='campaign_sent')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 4,
+    "observability": "directly observable",
+    "limitations": "Counts include duplicates; left edge may predate available history; see coverage flags.",
+    "relevance_to_laya": "WA observed sends in trailing 7 days can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "wa_send_rows_30d",
+    "meaning": "WA observed sends in trailing 30 days",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE event_datetime >= :'snapshot'::timestamp - interval '30 days' AND channel='WA' AND event_name='campaign_sent')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 4,
+    "observability": "directly observable",
+    "limitations": "Counts include duplicates; left edge may predate available history; see coverage flags.",
+    "relevance_to_laya": "WA observed sends in trailing 30 days can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "wa_unmatched_open_event_row_ratio",
+    "meaning": "WA unmatched open/read-row to send-row diagnostic",
+    "source_fields": [
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE channel='WA' AND event_name='campaign_open_read')::double precision/nullif(count(*) FILTER(WHERE channel='WA' AND event_name='campaign_sent'),0)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 5,
+    "observability": "directly observable",
+    "limitations": "NOT a matched rate, may exceed one, ignores unique-message attribution and censoring; NULL with zero sends.",
+    "relevance_to_laya": "WA unmatched open/read-row to send-row diagnostic can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "wa_matched_open_rate",
+    "meaning": "WA verified unique-message matched-open rate",
+    "source_fields": [
+      "event_datetime",
+      "event_name",
+      "channel",
+      "channel_id"
+    ],
+    "formula": "NULL::double precision",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 5,
+    "observability": "contract-dependent",
+    "limitations": "Unavailable: message identity/linkage, complete response windows and telemetry contracts unverified; affinity parameters unapproved.",
+    "relevance_to_laya": "WA verified unique-message matched-open rate can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "wa_median_time_to_open_hours",
+    "meaning": "WA median verified matched delay",
+    "source_fields": [
+      "event_datetime",
+      "event_name",
+      "channel",
+      "channel_id"
+    ],
+    "formula": "NULL::double precision",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 5,
+    "observability": "contract-dependent",
+    "limitations": "Unavailable: message identity/linkage, complete response windows and telemetry contracts unverified; affinity parameters unapproved.",
+    "relevance_to_laya": "WA median verified matched delay can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "wa_channel_affinity",
+    "meaning": "WA opening-primary, delay-secondary smoothed affinity",
+    "source_fields": [
+      "event_datetime",
+      "event_name",
+      "channel",
+      "channel_id"
+    ],
+    "formula": "NULL::double precision",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 5,
+    "observability": "contract-dependent",
+    "limitations": "Unavailable: message identity/linkage, complete response windows and telemetry contracts unverified; affinity parameters unapproved.",
+    "relevance_to_laya": "WA opening-primary, delay-secondary smoothed affinity can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "grcs_send_rows",
+    "meaning": "GRCS observed campaign_sent event-row count",
+    "source_fields": [
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE channel='GRCS' AND event_name='campaign_sent')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 1,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "GRCS observed campaign_sent event-row count can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "grcs_open_read_rows",
+    "meaning": "GRCS observed campaign_open_read event-row count",
+    "source_fields": [
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE channel='GRCS' AND event_name='campaign_open_read')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 2,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "GRCS observed campaign_open_read event-row count can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "grcs_click_rows",
+    "meaning": "GRCS observed campaign_clicked event-row count",
+    "source_fields": [
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE channel='GRCS' AND event_name='campaign_clicked')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 2,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "GRCS observed campaign_clicked event-row count can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "grcs_last_send_at",
+    "meaning": "GRCS last observed send timestamp",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "max(event_datetime) FILTER(WHERE channel='GRCS' AND event_name='campaign_sent')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 3,
+    "observability": "directly observable",
+    "limitations": "NULL without observed qualifying events; missing telemetry is not lack of interest.",
+    "relevance_to_laya": "GRCS last observed send timestamp can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "grcs_hours_since_last_send",
+    "meaning": "GRCS hours since last observed send",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "extract(epoch FROM (:'snapshot'::timestamp - (max(event_datetime) FILTER(WHERE channel='GRCS' AND event_name='campaign_sent'))))/3600.0",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 3,
+    "observability": "directly observable",
+    "limitations": "NULL without observed qualifying events; no future rows allowed.",
+    "relevance_to_laya": "GRCS hours since last observed send can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "grcs_last_engagement_at",
+    "meaning": "GRCS last observed engagement timestamp",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "max(event_datetime) FILTER(WHERE channel='GRCS' AND event_name IN ('campaign_open_read','campaign_clicked'))",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 3,
+    "observability": "directly observable",
+    "limitations": "NULL without observed qualifying events; missing telemetry is not lack of interest.",
+    "relevance_to_laya": "GRCS last observed engagement timestamp can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "grcs_hours_since_last_engagement",
+    "meaning": "GRCS hours since last observed engagement",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "extract(epoch FROM (:'snapshot'::timestamp - (max(event_datetime) FILTER(WHERE channel='GRCS' AND event_name IN ('campaign_open_read','campaign_clicked')))))/3600.0",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 3,
+    "observability": "directly observable",
+    "limitations": "NULL without observed qualifying events; no future rows allowed.",
+    "relevance_to_laya": "GRCS hours since last observed engagement can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "grcs_send_rows_1d",
+    "meaning": "GRCS observed sends in trailing 1 days",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE event_datetime >= :'snapshot'::timestamp - interval '1 days' AND channel='GRCS' AND event_name='campaign_sent')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 4,
+    "observability": "directly observable",
+    "limitations": "Counts include duplicates; left edge may predate available history; see coverage flags.",
+    "relevance_to_laya": "GRCS observed sends in trailing 1 days can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "grcs_send_rows_7d",
+    "meaning": "GRCS observed sends in trailing 7 days",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE event_datetime >= :'snapshot'::timestamp - interval '7 days' AND channel='GRCS' AND event_name='campaign_sent')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 4,
+    "observability": "directly observable",
+    "limitations": "Counts include duplicates; left edge may predate available history; see coverage flags.",
+    "relevance_to_laya": "GRCS observed sends in trailing 7 days can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "grcs_send_rows_30d",
+    "meaning": "GRCS observed sends in trailing 30 days",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE event_datetime >= :'snapshot'::timestamp - interval '30 days' AND channel='GRCS' AND event_name='campaign_sent')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 4,
+    "observability": "directly observable",
+    "limitations": "Counts include duplicates; left edge may predate available history; see coverage flags.",
+    "relevance_to_laya": "GRCS observed sends in trailing 30 days can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "grcs_unmatched_open_event_row_ratio",
+    "meaning": "GRCS unmatched open/read-row to send-row diagnostic",
+    "source_fields": [
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE channel='GRCS' AND event_name='campaign_open_read')::double precision/nullif(count(*) FILTER(WHERE channel='GRCS' AND event_name='campaign_sent'),0)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 5,
+    "observability": "directly observable",
+    "limitations": "NOT a matched rate, may exceed one, ignores unique-message attribution and censoring; NULL with zero sends.",
+    "relevance_to_laya": "GRCS unmatched open/read-row to send-row diagnostic can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "grcs_matched_open_rate",
+    "meaning": "GRCS verified unique-message matched-open rate",
+    "source_fields": [
+      "event_datetime",
+      "event_name",
+      "channel",
+      "channel_id"
+    ],
+    "formula": "NULL::double precision",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 5,
+    "observability": "contract-dependent",
+    "limitations": "Unavailable: message identity/linkage, complete response windows and telemetry contracts unverified; affinity parameters unapproved.",
+    "relevance_to_laya": "GRCS verified unique-message matched-open rate can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "grcs_median_time_to_open_hours",
+    "meaning": "GRCS median verified matched delay",
+    "source_fields": [
+      "event_datetime",
+      "event_name",
+      "channel",
+      "channel_id"
+    ],
+    "formula": "NULL::double precision",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 5,
+    "observability": "contract-dependent",
+    "limitations": "Unavailable: message identity/linkage, complete response windows and telemetry contracts unverified; affinity parameters unapproved.",
+    "relevance_to_laya": "GRCS median verified matched delay can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "grcs_channel_affinity",
+    "meaning": "GRCS opening-primary, delay-secondary smoothed affinity",
+    "source_fields": [
+      "event_datetime",
+      "event_name",
+      "channel",
+      "channel_id"
+    ],
+    "formula": "NULL::double precision",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 5,
+    "observability": "contract-dependent",
+    "limitations": "Unavailable: message identity/linkage, complete response windows and telemetry contracts unverified; affinity parameters unapproved.",
+    "relevance_to_laya": "GRCS opening-primary, delay-secondary smoothed affinity can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "send_rows_1d",
+    "meaning": "Across-approved-channel observed sends in 1 days",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE event_datetime >= :'snapshot'::timestamp - interval '1 days' AND channel IN ('SMS','WA','GRCS') AND event_name='campaign_sent')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 4,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Across-approved-channel observed sends in 1 days can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "send_rows_7d",
+    "meaning": "Across-approved-channel observed sends in 7 days",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE event_datetime >= :'snapshot'::timestamp - interval '7 days' AND channel IN ('SMS','WA','GRCS') AND event_name='campaign_sent')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 4,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Across-approved-channel observed sends in 7 days can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "send_rows_30d",
+    "meaning": "Across-approved-channel observed sends in 30 days",
+    "source_fields": [
+      "event_datetime",
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE event_datetime >= :'snapshot'::timestamp - interval '30 days' AND channel IN ('SMS','WA','GRCS') AND event_name='campaign_sent')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 4,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Across-approved-channel observed sends in 30 days can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "missing_channel_send_rows",
+    "meaning": "Send-labelled rows without known channel",
+    "source_fields": [
+      "channel",
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE nullif(btrim(channel),'') IS NULL AND event_name='campaign_sent')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 4,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Send-labelled rows without known channel can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "distinct_application_count",
+    "meaning": "Distinct recorded application identifiers",
+    "source_fields": [
+      "application_id"
+    ],
+    "formula": "count(DISTINCT application_id) FILTER(WHERE nullif(btrim(application_id),'') IS NOT NULL)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 7,
+    "observability": "directly observable",
+    "limitations": "Not previous applications or active applications; source associations can be inconsistent.",
+    "relevance_to_laya": "Distinct recorded application identifiers can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "previous_application_count",
+    "meaning": "Applications preceding an authoritative current application",
+    "source_fields": [
+      "application_id"
+    ],
+    "formula": "NULL::bigint",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 7,
+    "observability": "contract-dependent",
+    "limitations": "Current-application selection contract absent.",
+    "relevance_to_laya": "Applications preceding an authoritative current application can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "latest_observed_journey_stage",
+    "meaning": "Latest observed journey stage",
+    "source_fields": [
+      "event_datetime",
+      "journey_stage",
+      "journey_substage",
+      "source_filename",
+      "source_row_number"
+    ],
+    "formula": "(array_agg(journey_stage ORDER BY event_datetime DESC,source_filename DESC,source_row_number DESC) FILTER(WHERE nullif(btrim(journey_stage),'') IS NOT NULL OR nullif(btrim(journey_substage),'') IS NOT NULL))[1]",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 6,
+    "observability": "directly observable",
+    "limitations": "Not authoritative current state. Both stage/substage come from the same event; ties use provenance, not causal ordering.",
+    "relevance_to_laya": "Latest observed journey stage can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "latest_observed_journey_substage",
+    "meaning": "Latest observed journey substage",
+    "source_fields": [
+      "event_datetime",
+      "journey_stage",
+      "journey_substage",
+      "source_filename",
+      "source_row_number"
+    ],
+    "formula": "(array_agg(journey_substage ORDER BY event_datetime DESC,source_filename DESC,source_row_number DESC) FILTER(WHERE nullif(btrim(journey_stage),'') IS NOT NULL OR nullif(btrim(journey_substage),'') IS NOT NULL))[1]",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 6,
+    "observability": "directly observable",
+    "limitations": "Not authoritative current state. Both stage/substage come from the same event; ties use provenance, not causal ordering.",
+    "relevance_to_laya": "Latest observed journey substage can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "latest_observed_journey_at",
+    "meaning": "Latest observed journey journey timestamp",
+    "source_fields": [
+      "event_datetime",
+      "journey_stage",
+      "journey_substage",
+      "source_filename",
+      "source_row_number"
+    ],
+    "formula": "(array_agg(event_datetime ORDER BY event_datetime DESC,source_filename DESC,source_row_number DESC) FILTER(WHERE nullif(btrim(journey_stage),'') IS NOT NULL OR nullif(btrim(journey_substage),'') IS NOT NULL))[1]",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 6,
+    "observability": "directly observable",
+    "limitations": "Not authoritative current state. Both stage/substage come from the same event; ties use provenance, not causal ordering.",
+    "relevance_to_laya": "Latest observed journey journey timestamp can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "hours_since_last_journey_event",
+    "meaning": "Hours since an event with a recorded journey stage/substage",
+    "source_fields": [
+      "event_datetime",
+      "journey_stage",
+      "journey_substage"
+    ],
+    "formula": "extract(epoch FROM (:'snapshot'::timestamp - (max(event_datetime) FILTER(WHERE nullif(btrim(journey_stage),'') IS NOT NULL OR nullif(btrim(journey_substage),'') IS NOT NULL))))/3600.0",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 10,
+    "observability": "directly observable",
+    "limitations": "Relevance uses recorded journey fields, not an invented progression score.",
+    "relevance_to_laya": "Hours since an event with a recorded journey stage/substage can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "hours_since_last_aip_event",
+    "meaning": "Hours since any of four separately preserved AIP-labelled events",
+    "source_fields": [
+      "event_datetime",
+      "event_name"
+    ],
+    "formula": "extract(epoch FROM (:'snapshot'::timestamp - (max(event_datetime) FILTER(WHERE event_name IN ('AIP','aip ok','aip  ok','aip not ok')))))/3600.0",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 9,
+    "observability": "directly observable",
+    "limitations": "Lexical grouping only; no approved/failed outcome interpretation.",
+    "relevance_to_laya": "Hours since any of four separately preserved AIP-labelled events can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "last_customer_initiated_activity_at",
+    "meaning": "Authoritatively customer-initiated activity timestamp",
+    "source_fields": [
+      "event_datetime",
+      "initiated_by"
+    ],
+    "formula": "NULL::timestamp",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 11,
+    "observability": "contract-dependent",
+    "limitations": "Even literal user/system labels need authoritative classification.",
+    "relevance_to_laya": "Authoritatively customer-initiated activity timestamp can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "hours_since_last_customer_initiated_activity",
+    "meaning": "Hours since verified customer-initiated activity",
+    "source_fields": [
+      "event_datetime",
+      "initiated_by"
+    ],
+    "formula": "NULL::double precision",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 11,
+    "observability": "contract-dependent",
+    "limitations": "initiated_by business contract missing.",
+    "relevance_to_laya": "Hours since verified customer-initiated activity can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "distinct_session_count",
+    "meaning": "Distinct recorded nonblank sessions",
+    "source_fields": [
+      "session_id"
+    ],
+    "formula": "count(DISTINCT session_id) FILTER(WHERE nullif(btrim(session_id),'') IS NOT NULL)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 12,
+    "observability": "directly observable",
+    "limitations": "No missing sessions fabricated; zero recorded IDs is not zero real visits.",
+    "relevance_to_laya": "Distinct recorded nonblank sessions can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "visitnum_recorded_rows",
+    "meaning": "Rows with a recorded visitnum field",
+    "source_fields": [
+      "visitnum"
+    ],
+    "formula": "count(*) FILTER(WHERE visitnum IS NOT NULL)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 12,
+    "observability": "directly observable",
+    "limitations": "visitnum semantics unverified; not a visit count.",
+    "relevance_to_laya": "Rows with a recorded visitnum field can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "max_observed_visitnum",
+    "meaning": "Maximum recorded visitnum value",
+    "source_fields": [
+      "visitnum"
+    ],
+    "formula": "max(visitnum)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 12,
+    "observability": "directly observable",
+    "limitations": "No interpretation as session or total visits.",
+    "relevance_to_laya": "Maximum recorded visitnum value can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "active_days_7d",
+    "meaning": "Days with recorded events in 7 days",
+    "source_fields": [
+      "event_datetime"
+    ],
+    "formula": "count(DISTINCT event_datetime::date) FILTER(WHERE event_datetime >= :'snapshot'::timestamp - interval '7 days' AND TRUE)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 14,
+    "observability": "directly observable",
+    "limitations": "Observed-event activity, not verified user activity; calendar dates in unresolved source timezone.",
+    "relevance_to_laya": "Days with recorded events in 7 days can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "active_days_30d",
+    "meaning": "Days with recorded events in 30 days",
+    "source_fields": [
+      "event_datetime"
+    ],
+    "formula": "count(DISTINCT event_datetime::date) FILTER(WHERE event_datetime >= :'snapshot'::timestamp - interval '30 days' AND TRUE)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 14,
+    "observability": "directly observable",
+    "limitations": "Observed-event activity, not verified user activity; calendar dates in unresolved source timezone.",
+    "relevance_to_laya": "Days with recorded events in 30 days can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "recent_window_event_rows",
+    "meaning": "Recorded events in configurable recent trend window",
+    "source_fields": [
+      "event_datetime"
+    ],
+    "formula": "count(*) FILTER(WHERE event_datetime >= :'snapshot'::timestamp - :trend_days * interval '1 day')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 14,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Recorded events in configurable recent trend window can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "prior_window_event_rows",
+    "meaning": "Recorded events in equal-length prior trend window",
+    "source_fields": [
+      "event_datetime"
+    ],
+    "formula": "count(*) FILTER(WHERE event_datetime >= :'snapshot'::timestamp - 2*:trend_days * interval '1 day' AND event_datetime < :'snapshot'::timestamp - :trend_days * interval '1 day')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 14,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Recorded events in equal-length prior trend window can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "event_activity_trend_delta",
+    "meaning": "Recent minus prior observed-event counts",
+    "source_fields": [
+      "event_datetime"
+    ],
+    "formula": "count(*) FILTER(WHERE event_datetime >= :'snapshot'::timestamp - :trend_days * interval '1 day') - count(*) FILTER(WHERE event_datetime >= :'snapshot'::timestamp - 2*:trend_days * interval '1 day' AND event_datetime < :'snapshot'::timestamp - :trend_days * interval '1 day')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 14,
+    "observability": "directly observable",
+    "limitations": "No causal or customer-activity interpretation; unavailable history is flagged separately.",
+    "relevance_to_laya": "Recent minus prior observed-event counts can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "latest_observed_application_id",
+    "meaning": "Latest recorded application_id",
+    "source_fields": [
+      "event_datetime",
+      "application_id",
+      "source_filename",
+      "source_row_number"
+    ],
+    "formula": "(array_agg(application_id ORDER BY event_datetime DESC,source_filename DESC,source_row_number DESC) FILTER(WHERE nullif(btrim(application_id),'') IS NOT NULL))[1]",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 15,
+    "observability": "directly observable",
+    "limitations": "Independent last-known observation, not necessarily active; separate timestamps indicate availability.",
+    "relevance_to_laya": "Latest recorded application_id can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "latest_observed_application_at",
+    "meaning": "Timestamp of latest recorded application_id",
+    "source_fields": [
+      "event_datetime",
+      "application_id"
+    ],
+    "formula": "max(event_datetime) FILTER(WHERE nullif(btrim(application_id),'') IS NOT NULL)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 15,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Timestamp of latest recorded application_id can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "latest_observed_product_id",
+    "meaning": "Latest recorded product_id",
+    "source_fields": [
+      "event_datetime",
+      "product_id",
+      "source_filename",
+      "source_row_number"
+    ],
+    "formula": "(array_agg(product_id ORDER BY event_datetime DESC,source_filename DESC,source_row_number DESC) FILTER(WHERE nullif(btrim(product_id),'') IS NOT NULL))[1]",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 15,
+    "observability": "directly observable",
+    "limitations": "Independent last-known observation, not necessarily active; separate timestamps indicate availability.",
+    "relevance_to_laya": "Latest recorded product_id can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "latest_observed_product_at",
+    "meaning": "Timestamp of latest recorded product_id",
+    "source_fields": [
+      "event_datetime",
+      "product_id"
+    ],
+    "formula": "max(event_datetime) FILTER(WHERE nullif(btrim(product_id),'') IS NOT NULL)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 15,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Timestamp of latest recorded product_id can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "latest_observed_partner_id",
+    "meaning": "Latest recorded partner_id",
+    "source_fields": [
+      "event_datetime",
+      "partner_id",
+      "source_filename",
+      "source_row_number"
+    ],
+    "formula": "(array_agg(partner_id ORDER BY event_datetime DESC,source_filename DESC,source_row_number DESC) FILTER(WHERE nullif(btrim(partner_id),'') IS NOT NULL))[1]",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 18,
+    "observability": "directly observable",
+    "limitations": "Independent last-known observation, not necessarily active; separate timestamps indicate availability.",
+    "relevance_to_laya": "Latest recorded partner_id can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "latest_observed_partner_at",
+    "meaning": "Timestamp of latest recorded partner_id",
+    "source_fields": [
+      "event_datetime",
+      "partner_id"
+    ],
+    "formula": "max(event_datetime) FILTER(WHERE nullif(btrim(partner_id),'') IS NOT NULL)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 18,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Timestamp of latest recorded partner_id can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "distinct_product_count",
+    "meaning": "Distinct observed product identifiers",
+    "source_fields": [
+      "product_id"
+    ],
+    "formula": "count(DISTINCT product_id) FILTER(WHERE nullif(btrim(product_id),'') IS NOT NULL)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 16,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Distinct observed product identifiers can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "product_associated_rows",
+    "meaning": "Recorded rows associated with a product",
+    "source_fields": [
+      "product_id"
+    ],
+    "formula": "count(*) FILTER(WHERE nullif(btrim(product_id),'') IS NOT NULL)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 16,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Recorded rows associated with a product can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "campaign_send_rows",
+    "meaning": "All send-labelled rows including missing channel/campaign",
+    "source_fields": [
+      "event_name"
+    ],
+    "formula": "count(*) FILTER(WHERE event_name='campaign_sent')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 17,
+    "observability": "directly observable",
+    "limitations": "Observed sends are not confirmed deliveries.",
+    "relevance_to_laya": "All send-labelled rows including missing channel/campaign can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "distinct_campaign_count",
+    "meaning": "Distinct recorded campaign names on send-labelled rows",
+    "source_fields": [
+      "event_name",
+      "campaign_name"
+    ],
+    "formula": "count(DISTINCT campaign_name) FILTER(WHERE event_name='campaign_sent' AND nullif(btrim(campaign_name),'') IS NOT NULL)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 17,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Distinct recorded campaign names on send-labelled rows can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "missing_campaign_send_rows",
+    "meaning": "Send-labelled rows without a recorded campaign name",
+    "source_fields": [
+      "event_name",
+      "campaign_name"
+    ],
+    "formula": "count(*) FILTER(WHERE event_name='campaign_sent' AND NOT (nullif(btrim(campaign_name),'') IS NOT NULL))",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 17,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Send-labelled rows without a recorded campaign name can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "distinct_partner_count",
+    "meaning": "Distinct recorded partner identifiers",
+    "source_fields": [
+      "partner_id"
+    ],
+    "formula": "count(DISTINCT partner_id) FILTER(WHERE nullif(btrim(partner_id),'') IS NOT NULL)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 18,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Distinct recorded partner identifiers can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "partner_associated_rows",
+    "meaning": "Recorded rows associated with partners",
+    "source_fields": [
+      "partner_id"
+    ],
+    "formula": "count(*) FILTER(WHERE nullif(btrim(partner_id),'') IS NOT NULL)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 18,
+    "observability": "directly observable",
+    "limitations": "Observed event rows, not unique messages or verified customer behavior.",
+    "relevance_to_laya": "Recorded rows associated with partners can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "recent_events",
+    "meaning": "Latest configurable number of events, presented chronologically",
+    "source_fields": [
+      "event_datetime",
+      "event_name",
+      "channel",
+      "application_id",
+      "product_id",
+      "partner_id",
+      "journey_stage",
+      "journey_substage",
+      "source_filename",
+      "source_row_number"
+    ],
+    "formula": "jsonb_agg(jsonb_build_object('event_datetime',event_datetime,'event_name',event_name,'channel',channel,'application_id',application_id,'product_id',product_id,'partner_id',partner_id,'journey_stage',journey_stage,'journey_substage',journey_substage,'source_filename',source_filename,'source_row_number',source_row_number) ORDER BY event_datetime,source_filename,source_row_number) FILTER(WHERE recent_rank<=:sequence_length)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 13,
+    "observability": "directly observable",
+    "limitations": "Default eight; tie-break is physical provenance, not causal. No synthetic state or action labels.",
+    "relevance_to_laya": "Latest configurable number of events, presented chronologically can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "event_label_counts",
+    "meaning": "Exact recorded event-label counts",
+    "source_fields": [
+      "event_name"
+    ],
+    "formula": "coalesce(ev.labels,'{}'::jsonb)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 0,
+    "observability": "directly observable",
+    "limitations": "Variable-length observed breakdown; no business semantics inferred.",
+    "relevance_to_laya": "Exact recorded event-label counts can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "aip_label_counts",
+    "meaning": "Separate counts for AIP, aip ok, aip double-space ok, aip not ok",
+    "source_fields": [
+      "event_name"
+    ],
+    "formula": "coalesce(ai.labels,'{}'::jsonb)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 8,
+    "observability": "directly observable",
+    "limitations": "Raw labels remain distinct; no approval/failure mapping.",
+    "relevance_to_laya": "Separate counts for AIP, aip ok, aip double-space ok, aip not ok can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "aip_label_recency_hours",
+    "meaning": "Hours since latest observation of each exact AIP label",
+    "source_fields": [
+      "event_name",
+      "event_datetime"
+    ],
+    "formula": "coalesce(ai.recencies,'{}'::jsonb)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 9,
+    "observability": "directly observable",
+    "limitations": "Absent label absent from map; not interpreted as zero recency.",
+    "relevance_to_laya": "Hours since latest observation of each exact AIP label can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "application_history",
+    "meaning": "Per-application rows, first/last observations and distinct observed product/partner counts",
+    "source_fields": [
+      "application_id",
+      "event_datetime",
+      "product_id",
+      "partner_id"
+    ],
+    "formula": "coalesce(ap.items,'[]'::jsonb)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 7,
+    "observability": "directly observable",
+    "limitations": "Variable-length observed breakdown; no business semantics inferred.",
+    "relevance_to_laya": "Per-application rows, first/last observations and distinct observed product/partner counts can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "product_history",
+    "meaning": "Per-product observed row counts and last timestamps",
+    "source_fields": [
+      "product_id",
+      "event_datetime"
+    ],
+    "formula": "coalesce(pr.items,'[]'::jsonb)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 16,
+    "observability": "directly observable",
+    "limitations": "Variable-length observed breakdown; no business semantics inferred.",
+    "relevance_to_laya": "Per-product observed row counts and last timestamps can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "partner_history",
+    "meaning": "Per-partner observed row counts and last timestamps",
+    "source_fields": [
+      "partner_id",
+      "event_datetime"
+    ],
+    "formula": "coalesce(pa.items,'[]'::jsonb)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 18,
+    "observability": "directly observable",
+    "limitations": "Variable-length observed breakdown; no business semantics inferred.",
+    "relevance_to_laya": "Per-partner observed row counts and last timestamps can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "campaign_send_counts",
+    "meaning": "Observed send rows by exact nonblank campaign name",
+    "source_fields": [
+      "campaign_name",
+      "event_name"
+    ],
+    "formula": "coalesce(ca.labels,'{}'::jsonb)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 17,
+    "observability": "directly observable",
+    "limitations": "Variable-length observed breakdown; no business semantics inferred.",
+    "relevance_to_laya": "Observed send rows by exact nonblank campaign name can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "initiated_by_counts",
+    "meaning": "Literal initiated_by value counts; no customer classification",
+    "source_fields": [
+      "initiated_by"
+    ],
+    "formula": "coalesce(ib.labels,'{}'::jsonb)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 11,
+    "observability": "directly observable",
+    "limitations": "Variable-length observed breakdown; no business semantics inferred.",
+    "relevance_to_laya": "Literal initiated_by value counts; no customer classification can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "journey_transition_eligible_applications",
+    "meaning": "Applications with one historical context and no conflicting equal-time journey observations",
+    "source_fields": [
+      "application_id",
+      "context_id",
+      "event_datetime",
+      "journey_stage",
+      "journey_substage"
+    ],
+    "formula": "coalesce(tr.eligible_applications,0)::bigint",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 10,
+    "observability": "directly observable",
+    "limitations": "Only reliable application-associated chronology is used; same-time repeated same-state rows are collapsed only for this transition calculation.",
+    "relevance_to_laya": "Applications with one historical context and no conflicting equal-time journey observations can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "observed_application_stage_changes",
+    "meaning": "Observed changes in ordered stage/substage pairs within reliable applications",
+    "source_fields": [
+      "application_id",
+      "event_datetime",
+      "journey_stage",
+      "journey_substage"
+    ],
+    "formula": "tr.changes",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 10,
+    "observability": "directly observable",
+    "limitations": "NULL without at least one reliable consecutive pair; not a progression or success score.",
+    "relevance_to_laya": "Observed changes in ordered stage/substage pairs within reliable applications can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "journey_transition_excluded_applications",
+    "meaning": "Applications not eligible for reliable stage-transition calculation",
+    "source_fields": [
+      "application_id",
+      "context_id",
+      "event_datetime",
+      "journey_stage",
+      "journey_substage"
+    ],
+    "formula": "g.distinct_application_count-coalesce(tr.eligible_applications,0)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 10,
+    "observability": "directly observable",
+    "limitations": "Variable-length observed breakdown; no business semantics inferred.",
+    "relevance_to_laya": "Applications not eligible for reliable stage-transition calculation can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "latest_journey_timestamp_conflicting",
+    "meaning": "Whether latest journey timestamp has conflicting observed stage pairs",
+    "source_fields": [
+      "event_datetime",
+      "journey_stage",
+      "journey_substage"
+    ],
+    "formula": "jt.variants>1",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 6,
+    "observability": "directly observable",
+    "limitations": "NULL when no journey observation; deterministic selected pair is not authoritative.",
+    "relevance_to_laya": "Whether latest journey timestamp has conflicting observed stage pairs can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "contact_pressure_windows",
+    "meaning": "Observed sends across configured trailing-day windows, approved channels separately",
+    "source_fields": [
+      "event_datetime",
+      "event_name",
+      "channel"
+    ],
+    "formula": "coalesce(cp.items,'{}'::jsonb)",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 4,
+    "observability": "directly observable",
+    "limitations": "Window coverage flags describe source availability, not telemetry completeness.",
+    "relevance_to_laya": "Observed sends across configured trailing-day windows, approved channels separately can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "source_coverage",
+    "meaning": "History and sequence coverage, no silent omission",
+    "source_fields": [
+      "event_datetime",
+      "source_month"
+    ],
+    "formula": "jsonb_build_object('available_history_start',coverage.first_at,'available_history_end',coverage.last_at,'observed_months',coverage.months,'timezone_contract','unresolved naive timestamps','history_is_lifetime',false,'trend_window_days',:trend_days,'trend_windows_within_available_time_span',(:'snapshot'::timestamp-2*:trend_days*interval '1 day'>=coverage.first_at),'recent_event_limit',:sequence_length,'retained_recent_rows',least(g.history_row_count,:sequence_length),'older_rows_in_aggregates',greatest(g.history_row_count-:sequence_length,0),'ordering','timestamp then source filename and row number; ties not causal')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 0,
+    "observability": "directly observable",
+    "limitations": "Available file span is not proof of complete customer or telemetry coverage.",
+    "relevance_to_laya": "History and sequence coverage, no silent omission can describe historical context; relevance requires outcome evaluation."
+  },
+  {
+    "column_name": "feature_availability",
+    "meaning": "Availability of contract-dependent measurements",
+    "source_fields": [],
+    "formula": "jsonb_build_object('matched_response','unavailable: unverified message linkage and response-window completeness','affinity','unavailable: linkage, observation-window and business parameter contracts','previous_applications','unavailable: current-application selection contract','customer_initiated_activity','unavailable: initiated_by classification contract','visit_semantics','unverified; raw visitnum observations only','stage','latest observed, not authoritative current stage','open_telemetry','unknown: absence does not imply unread or no interest','cost','excluded: external decision tie-breaker')",
+    "implementation": "sql/features/customer_aggregates.sql",
+    "feature_family": 0,
+    "observability": "contract-dependent",
+    "limitations": "Derived fields remain SQL NULL until contracts are approved.",
+    "relevance_to_laya": "Availability of contract-dependent measurements can describe historical context; relevance requires outcome evaluation."
+  }
+]

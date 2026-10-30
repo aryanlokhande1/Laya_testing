@@ -1,0 +1,3 @@
+# Reuse already installed weights; only increase the local runtime context.
+FROM laya:latest
+PARAMETER num_ctx 8192
